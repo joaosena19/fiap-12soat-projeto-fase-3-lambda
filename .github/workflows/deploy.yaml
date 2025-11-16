@@ -1,0 +1,92 @@
+name: Deploy Lambda to AWS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+  DOTNET_VERSION: '8.0.x'
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Lambda
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restaurar dependências
+        working-directory: ./src/AuthLambda
+        run: dotnet restore
+
+      - name: Build
+        working-directory: ./src/AuthLambda
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publicar Lambda
+        working-directory: ./src/AuthLambda
+        run: dotnet publish --configuration Release --no-build --output ./bin/Release/net8.0/publish
+
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Inicializar Terraform
+        working-directory: ./terraform
+        run: terraform init
+
+      - name: Validar Terraform
+        working-directory: ./terraform
+        run: terraform validate
+
+      - name: Planejar Terraform
+        working-directory: ./terraform
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_environment: ${{ github.event.inputs.environment }}
+          TF_VAR_jwt_key: ${{ secrets.JWT_KEY }}
+          TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
+          TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
+          TF_VAR_api_client_id: ${{ secrets.API_CLIENT_ID }}
+          TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
+        run: terraform plan -out=tfplan
+
+      - name: Aplicar Terraform
+        working-directory: ./terraform
+        env:
+          TF_VAR_aws_region: ${{ env.AWS_REGION }}
+          TF_VAR_environment: ${{ github.event.inputs.environment }}
+          TF_VAR_jwt_key: ${{ secrets.JWT_KEY }}
+          TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
+          TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
+          TF_VAR_api_client_id: ${{ secrets.API_CLIENT_ID }}
+          TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
+        run: terraform apply -auto-approve tfplan
+
+      - name: Exibir URL da Lambda
+        working-directory: ./terraform
+        run: terraform output lambda_function_url
