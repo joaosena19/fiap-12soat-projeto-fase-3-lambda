@@ -30,17 +30,3 @@ resource "aws_lambda_function" "auth_lambda" {
     Name = var.lambda_function_name
   }
 }
-
-# URL da função Lambda (para invocação direta sem API Gateway)
-resource "aws_lambda_function_url" "auth_lambda_url" {
-  function_name      = aws_lambda_function.auth_lambda.function_name
-  authorization_type = "NONE"
-
-  cors {
-    allow_origins     = ["*"]
-    allow_methods     = ["POST", "OPTIONS"]
-    allow_headers     = ["content-type", "authorization"]
-    expose_headers    = ["content-type"]
-    max_age          = 3600
-  }
-}
