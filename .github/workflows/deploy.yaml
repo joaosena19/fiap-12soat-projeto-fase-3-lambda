@@ -2,16 +2,6 @@ name: Deploy Lambda to AWS
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy to'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          - staging
-          - prod
 
 env:
   AWS_REGION: us-east-1
@@ -67,7 +57,6 @@ jobs:
         working-directory: ./terraform
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_environment: ${{ github.event.inputs.environment }}
           TF_VAR_jwt_key: ${{ secrets.JWT_KEY }}
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
@@ -79,7 +68,6 @@ jobs:
         working-directory: ./terraform
         env:
           TF_VAR_aws_region: ${{ env.AWS_REGION }}
-          TF_VAR_environment: ${{ github.event.inputs.environment }}
           TF_VAR_jwt_key: ${{ secrets.JWT_KEY }}
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
@@ -87,6 +75,10 @@ jobs:
           TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
         run: terraform apply -auto-approve tfplan
 
-      - name: Exibir URL da Lambda
+      - name: Exibir informações da Lambda
         working-directory: ./terraform
-        run: terraform output lambda_function_url
+        run: |
+          echo "Lambda Function Name:"
+          terraform output lambda_function_name
+          echo "Lambda Function ARN:"
+          terraform output lambda_function_arn

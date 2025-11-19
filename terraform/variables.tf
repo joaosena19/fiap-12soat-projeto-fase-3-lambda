@@ -4,12 +4,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "environment" {
-  description = "Ambiente de deployment (dev, staging, prod)"
-  type        = string
-  default     = "dev"
-}
-
 variable "lambda_function_name" {
   description = "Nome da função Lambda"
   type        = string

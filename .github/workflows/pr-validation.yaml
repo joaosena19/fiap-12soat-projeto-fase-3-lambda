@@ -101,7 +101,6 @@ jobs:
         working-directory: ./terraform
         env:
           TF_VAR_aws_region: us-east-1
-          TF_VAR_environment: dev
           TF_VAR_jwt_key: ${{ secrets.JWT_KEY }}
           TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}

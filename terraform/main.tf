@@ -6,7 +6,6 @@ provider "aws" {
       Project     = "fiap-12soat-fase3"
       ManagedBy   = "Terraform"
       Component   = "Lambda-Auth"
-      Environment = var.environment
     }
   }
 }
