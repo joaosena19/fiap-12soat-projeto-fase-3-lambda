@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "project_identifier" {
+  description = "Identificador do projeto para nomeação de recursos"
+  type        = string
+  default     = "fiap-12soat-projeto"
+}
+
 variable "lambda_function_name" {
   description = "Nome da função Lambda"
   type        = string
@@ -56,4 +62,11 @@ variable "api_client_secret" {
   description = "Client Secret para autenticação"
   type        = string
   sensitive   = true
+}
+
+# Variáveis para remote state da infraestrutura
+variable "infra_terraform_state_bucket" {
+  description = "Nome do bucket S3 onde está o state da infraestrutura"
+  type        = string
+  default     = "fiap-12soat-fase3-joao-dainese"
 }
