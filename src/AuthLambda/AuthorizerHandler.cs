@@ -39,6 +39,15 @@ public class AuthorizerHandler
             
             context.Logger.LogInformation($"Authorization header recebido: {(authHeader != null ? "[PRESENTE]" : "[AUSENTE]")}");
             
+            // Debug: Log do header completo (mascarado)
+            if (authHeader != null)
+            {
+                var maskedHeader = authHeader.Length > 20 
+                    ? authHeader.Substring(0, 20) + "..." 
+                    : authHeader;
+                context.Logger.LogInformation($"Header value (primeiros 20 chars): {maskedHeader}");
+            }
+            
             var token = ExtractToken(authHeader);
             if (string.IsNullOrEmpty(token))
             {
@@ -48,6 +57,12 @@ public class AuthorizerHandler
                     ["isAuthorized"] = false
                 };
             }
+
+            // Debug: Log do token extraído (mascarado)
+            var maskedToken = token.Length > 20 
+                ? token.Substring(0, 20) + "..." 
+                : token;
+            context.Logger.LogInformation($"Token extraído (primeiros 20 chars): {maskedToken}");
 
             var claimsPrincipal = ValidateToken(token);
             var userId = claimsPrincipal.FindFirst("sub")?.Value ?? "user";
@@ -81,11 +96,14 @@ public class AuthorizerHandler
         if (string.IsNullOrEmpty(authorizationHeader))
             return null;
 
-        // Remove "Bearer " prefix
+        // Remove "Bearer " prefix se existir
         if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return authorizationHeader.Substring(7);
+        {
+            return authorizationHeader.Substring(7).Trim();
+        }
 
-        return authorizationHeader;
+        // Se não tem prefixo Bearer, retorna como está
+        return authorizationHeader.Trim();
     }
 
     private ClaimsPrincipal ValidateToken(string token)
