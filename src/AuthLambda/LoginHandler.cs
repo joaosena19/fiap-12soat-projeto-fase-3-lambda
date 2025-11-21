@@ -1,9 +1,11 @@
+using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Infrastructure.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.Enums;
 using Shared.Exceptions;
+using System.Text.Json;
 
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
 
@@ -38,32 +40,67 @@ public class LoginHandler
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
     }
 
-    public TokenResponseDto FunctionHandler(TokenRequestDto request, ILambdaContext context)
+    public APIGatewayProxyResponse FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
-        context.Logger.LogInformation($"Requisição de login recebida para ClientId: {request?.ClientId}");
+        context.Logger.LogInformation($"Requisição de login recebida. Body: {request?.Body}");
 
         try
         {
-            if (request == null)
+            if (request?.Body == null)
             {
-                throw new DomainException("Request inválido", ErrorType.InvalidInput);
+                return CreateErrorResponse(400, "Request body é obrigatório");
+            }
+
+            // Deserializar o body JSON
+            var tokenRequest = JsonSerializer.Deserialize<TokenRequestDto>(request.Body, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            context.Logger.LogInformation($"ClientId recebido: {tokenRequest?.ClientId}");
+
+            if (tokenRequest == null)
+            {
+                return CreateErrorResponse(400, "Request inválido");
             }
 
             // Validar credenciais e gerar token
-            var tokenResponse = _authenticationService.ValidateCredentialsAndGenerateToken(request);
+            var tokenResponse = _authenticationService.ValidateCredentialsAndGenerateToken(tokenRequest);
 
             context.Logger.LogInformation("Token gerado com sucesso");
-            return tokenResponse;
+            
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 200,
+                Headers = new Dictionary<string, string>
+                {
+                    ["Content-Type"] = "application/json"
+                },
+                Body = JsonSerializer.Serialize(tokenResponse)
+            };
         }
         catch (DomainException ex)
         {
             context.Logger.LogError($"Domain exception: {ex.Message} - Tipo: {ex.ErrorType}");
-            throw;
+            return CreateErrorResponse(400, ex.Message);
         }
         catch (Exception ex)
         {
             context.Logger.LogError($"Exception inesperada: {ex.Message}");
-            throw new DomainException("Erro interno no servidor", ErrorType.UnexpectedError);
+            return CreateErrorResponse(500, "Erro interno no servidor");
         }
+    }
+
+    private static APIGatewayProxyResponse CreateErrorResponse(int statusCode, string message)
+    {
+        return new APIGatewayProxyResponse
+        {
+            StatusCode = statusCode,
+            Headers = new Dictionary<string, string>
+            {
+                ["Content-Type"] = "application/json"
+            },
+            Body = JsonSerializer.Serialize(new { error = message })
+        };
     }
 }
