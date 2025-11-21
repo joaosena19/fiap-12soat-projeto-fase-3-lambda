@@ -87,12 +87,12 @@ jobs:
       - name: Restaurar dependências
         if: steps.changes.outputs.terraform_changed == 'true'
         working-directory: ./src/AuthLambda
-        run: dotnet restore
+        run: dotnet restore --runtime linux-x64
 
       - name: Build Lambda
         if: steps.changes.outputs.terraform_changed == 'true'
         working-directory: ./src/AuthLambda
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --runtime linux-x64 --no-restore
 
       - name: Publicar Lambda para validação
         if: steps.changes.outputs.terraform_changed == 'true'
