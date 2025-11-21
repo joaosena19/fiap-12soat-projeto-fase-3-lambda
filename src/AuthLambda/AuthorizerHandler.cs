@@ -24,13 +24,19 @@ public class AuthorizerHandler
         _tokenHandler = new JwtSecurityTokenHandler();
     }
 
-    public Dictionary<string, object> FunctionHandler(APIGatewayCustomAuthorizerRequest request, ILambdaContext context)
+    public Dictionary<string, object> FunctionHandler(APIGatewayHttpApiV2ProxyRequest request, ILambdaContext context)
     {
         context.Logger.LogInformation("Lambda Authorizer executado");
 
         try
         {
-            var token = ExtractToken(request.AuthorizationToken);
+            // Para HTTP API v2, o token vem em request.Headers["authorization"] ou request.Headers["Authorization"]
+            var authHeader = request.Headers?.GetValueOrDefault("authorization") 
+                          ?? request.Headers?.GetValueOrDefault("Authorization");
+            
+            context.Logger.LogInformation($"Authorization header recebido: {(authHeader != null ? "[PRESENTE]" : "[AUSENTE]")}");
+            
+            var token = ExtractToken(authHeader);
             if (string.IsNullOrEmpty(token))
             {
                 context.Logger.LogWarning("Token não fornecido ou inválido");
@@ -67,16 +73,16 @@ public class AuthorizerHandler
         }
     }
 
-    private string? ExtractToken(string? authorizationToken)
+    private string? ExtractToken(string? authorizationHeader)
     {
-        if (string.IsNullOrEmpty(authorizationToken))
+        if (string.IsNullOrEmpty(authorizationHeader))
             return null;
 
         // Remove "Bearer " prefix
-        if (authorizationToken.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-            return authorizationToken.Substring(7);
+        if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            return authorizationHeader.Substring(7);
 
-        return authorizationToken;
+        return authorizationHeader;
     }
 
     private ClaimsPrincipal ValidateToken(string token)

@@ -82,7 +82,16 @@ public class LoginHandler
         catch (DomainException ex)
         {
             context.Logger.LogError($"Domain exception: {ex.Message} - Tipo: {ex.ErrorType}");
-            return CreateErrorResponse(400, ex.Message);
+            
+            // Mapear ErrorType para status code correto
+            int statusCode = ex.ErrorType switch
+            {
+                ErrorType.InvalidInput => 400,      // Bad Request - dados ausentes/inválidos
+                ErrorType.Unauthorized => 401,     // Unauthorized - credenciais incorretas
+                _ => 400
+            };
+            
+            return CreateErrorResponse(statusCode, ex.Message);
         }
         catch (Exception ex)
         {
