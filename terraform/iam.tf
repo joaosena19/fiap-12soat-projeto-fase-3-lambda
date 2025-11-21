@@ -1,6 +1,6 @@
 # Role IAM para execução da Lambda
 resource "aws_iam_role" "lambda_execution_role" {
-  name = "${var.lambda_function_name}-execution-role"
+  name = "${var.project_identifier}-lambda-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -16,7 +16,7 @@ resource "aws_iam_role" "lambda_execution_role" {
   })
 
   tags = {
-    Name = "${var.lambda_function_name}-execution-role"
+    Name = "${var.project_identifier}-lambda-execution-role"
   }
 }
 

@@ -1,11 +1,22 @@
-output "lambda_function_arn" {
-  description = "ARN da função Lambda"
-  value       = aws_lambda_function.auth_lambda.arn
+# Outputs das funções Lambda
+output "login_lambda_arn" {
+  description = "ARN da função Lambda de Login"
+  value       = aws_lambda_function.login.arn
 }
 
-output "lambda_function_name" {
-  description = "Nome da função Lambda"
-  value       = aws_lambda_function.auth_lambda.function_name
+output "login_lambda_name" {
+  description = "Nome da função Lambda de Login"
+  value       = aws_lambda_function.login.function_name
+}
+
+output "authorizer_lambda_arn" {
+  description = "ARN da função Lambda Authorizer"
+  value       = aws_lambda_function.authorizer.arn
+}
+
+output "authorizer_lambda_name" {
+  description = "Nome da função Lambda Authorizer"
+  value       = aws_lambda_function.authorizer.function_name
 }
 
 output "lambda_execution_role_arn" {

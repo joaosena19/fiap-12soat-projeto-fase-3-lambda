@@ -38,35 +38,43 @@ resource "aws_apigatewayv2_stage" "default" {
   }
 }
 
-# Permissão para API Gateway invocar a Lambda
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
+# Permissão para API Gateway invocar a Lambda de Login
+resource "aws_lambda_permission" "api_gateway_login" {
+  statement_id  = "AllowAPIGatewayInvokeLogin"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.auth_lambda.function_name
+  function_name = aws_lambda_function.login.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/*/*"
 }
 
-# Integração com Lambda
-resource "aws_apigatewayv2_integration" "lambda_auth" {
+# Permissão para API Gateway invocar a Lambda Authorizer
+resource "aws_lambda_permission" "api_gateway_authorizer" {
+  statement_id  = "AllowAPIGatewayInvokeAuthorizer"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.authorizer.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.main.execution_arn}/authorizers/*"
+}
+
+# Integração com Lambda de Login
+resource "aws_apigatewayv2_integration" "lambda_login" {
   api_id             = aws_apigatewayv2_api.main.id
   integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.auth_lambda.arn
+  integration_uri    = aws_lambda_function.login.arn
   integration_method = "POST"
   payload_format_version = "2.0"
 }
 
-# JWT Authorizer para validar tokens nas rotas protegidas
-resource "aws_apigatewayv2_authorizer" "jwt" {
-  api_id           = aws_apigatewayv2_api.main.id
-  authorizer_type  = "JWT"
-  identity_sources = ["$request.header.Authorization"]
-  name             = "${var.project_identifier}-jwt-authorizer"
-
-  jwt_configuration {
-    audience = [var.jwt_audience]
-    issuer   = var.jwt_issuer
-  }
+# Lambda Authorizer customizado para validar tokens JWT (HTTP API v2)
+resource "aws_apigatewayv2_authorizer" "lambda_auth" {
+  api_id                            = aws_apigatewayv2_api.main.id
+  authorizer_type                   = "REQUEST"
+  authorizer_uri                    = aws_lambda_function.authorizer.invoke_arn
+  name                              = "${var.project_identifier}-lambda-authorizer"
+  authorizer_payload_format_version = "2.0"
+  authorizer_result_ttl_in_seconds  = 300
+  identity_sources                  = ["$request.header.Authorization"]
+  enable_simple_responses           = true
 }
 
 # Security Group para VPC Link
