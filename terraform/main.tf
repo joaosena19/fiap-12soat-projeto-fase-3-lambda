@@ -3,9 +3,9 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Project     = "fiap-12soat-fase3"
-      ManagedBy   = "Terraform"
-      Component   = "Lambda-Auth"
+      Project   = "fiap-12soat-fase3"
+      ManagedBy = "Terraform"
+      Component = "Lambda-Auth"
     }
   }
 }
