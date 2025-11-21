@@ -97,7 +97,7 @@ jobs:
       - name: Publicar Lambda para validação
         if: steps.changes.outputs.terraform_changed == 'true'
         working-directory: ./src/AuthLambda
-        run: dotnet publish --configuration Release --no-build --output ./bin/Release/net8.0/publish
+        run: dotnet publish --configuration Release --no-build --runtime linux-x64 --self-contained false --output ./bin/Release/net8.0/publish
 
       - name: Configurar Terraform
         if: steps.changes.outputs.terraform_changed == 'true'
