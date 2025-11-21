@@ -33,6 +33,11 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Criar estrutura mínima para evitar erro de ZIP
+        run: |
+          mkdir -p ./src/AuthLambda/bin/Release/net8.0/publish
+          echo "dummy" > ./src/AuthLambda/bin/Release/net8.0/publish/dummy.txt
+
       - name: Configurar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
