@@ -99,17 +99,17 @@ resource "aws_apigatewayv2_stage" "default" {
     destination_arn = aws_cloudwatch_log_group.api_gateway.arn
     format = jsonencode({
       requestId         = "$context.requestId"
-      time              = "$context.time"
-      httpMethod        = "$context.httpMethod"
       routeKey          = "$context.routeKey"
+      httpMethod        = "$context.httpMethod"
       status            = "$context.status"
       integrationStatus = "$context.integrationStatus"
       errorMessage      = "$context.error.message"
-      errorResponseType = "$context.error.responseType"
+      errorType         = "$context.error.responseType"
       authorizerSub     = "$context.authorizer.sub"
       authorizerRole    = "$context.authorizer.role"
     })
   }
+
 
   default_route_settings {
     detailed_metrics_enabled = true
