@@ -27,11 +27,100 @@ resource "aws_apigatewayv2_api" "main" {
   }
 }
 
-# Stage padrão
+# CloudWatch Log Group para API Gateway
+resource "aws_cloudwatch_log_group" "api_gateway" {
+  name              = "/aws/apigateway/${var.project_identifier}-api-gateway"
+  retention_in_days = 7
+
+  tags = {
+    Name = "${var.project_identifier}-api-gateway-logs"
+  }
+}
+
+# IAM Role para API Gateway logging
+resource "aws_iam_role" "api_gateway_logging" {
+  name = "${var.project_identifier}-api-gateway-logging-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "apigateway.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "${var.project_identifier}-api-gateway-logging-role"
+  }
+}
+
+# IAM Policy para CloudWatch Logs
+resource "aws_iam_role_policy" "api_gateway_logging" {
+  name = "${var.project_identifier}-api-gateway-logging-policy"
+  role = aws_iam_role.api_gateway_logging.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams",
+          "logs:PutLogEvents",
+          "logs:GetLogEvents",
+          "logs:FilterLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
+# API Gateway Account Configuration (para habilitar logging globalmente)
+resource "aws_api_gateway_account" "main" {
+  cloudwatch_role_arn = aws_iam_role.api_gateway_logging.arn
+}
+
+# Stage padrão com logs habilitados
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.main.id
   name        = "$default"
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gateway.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip            = "$context.identity.sourceIp"
+      requestTime   = "$context.requestTime"
+      httpMethod    = "$context.httpMethod"
+      routeKey      = "$context.routeKey"
+      status        = "$context.status"
+      protocol      = "$context.protocol"
+      responseLength = "$context.responseLength"
+      responseTime  = "$context.responseTime"
+      authorizerStatus = "$context.authorizer.status"
+      authorizerError = "$context.authorizer.error"
+      integrationStatus = "$context.integration.status"
+      integrationError = "$context.integration.error"
+      integrationErrorMessage = "$context.integration.errorMessage"
+    })
+  }
+
+  default_route_settings {
+    detailed_metrics_enabled = true
+    logging_level            = "INFO"
+    throttling_burst_limit   = 5000
+    throttling_rate_limit    = 10000
+  }
 
   tags = {
     Name = "${var.project_identifier}-api-gateway-stage"
