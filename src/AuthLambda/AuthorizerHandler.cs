@@ -96,14 +96,14 @@ public class AuthorizerHandler
         if (string.IsNullOrEmpty(authorizationHeader))
             return null;
 
-        // Remove "Bearer " prefix se existir
-        if (authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        // Remove todos os prefixos "Bearer " (pode ter mais de um devido a proxy/gateway)
+        var token = authorizationHeader.Trim();
+        while (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
         {
-            return authorizationHeader.Substring(7).Trim();
+            token = token.Substring(7).Trim();
         }
 
-        // Se não tem prefixo Bearer, retorna como está
-        return authorizationHeader.Trim();
+        return string.IsNullOrEmpty(token) ? null : token;
     }
 
     private ClaimsPrincipal ValidateToken(string token)
