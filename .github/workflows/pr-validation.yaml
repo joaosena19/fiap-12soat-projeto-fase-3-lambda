@@ -78,6 +78,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Configurar .NET 8.0
+        if: steps.changes.outputs.terraform_changed == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar dependências
+        if: steps.changes.outputs.terraform_changed == 'true'
+        working-directory: ./src/AuthLambda
+        run: dotnet restore
+
+      - name: Build Lambda
+        if: steps.changes.outputs.terraform_changed == 'true'
+        working-directory: ./src/AuthLambda
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publicar Lambda para validação
+        if: steps.changes.outputs.terraform_changed == 'true'
+        working-directory: ./src/AuthLambda
+        run: dotnet publish --configuration Release --no-build --output ./bin/Release/net8.0/publish
+
       - name: Configurar Terraform
         if: steps.changes.outputs.terraform_changed == 'true'
         uses: hashicorp/setup-terraform@v3
