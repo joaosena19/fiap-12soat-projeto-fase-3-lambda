@@ -15,11 +15,11 @@ resource "aws_apigatewayv2_api" "main" {
   description   = "API Gateway para roteamento entre Lambda (auth) e EKS (aplicação)"
 
   cors_configuration {
-    allow_origins     = ["*"]
-    allow_methods     = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
-    allow_headers     = ["content-type", "authorization", "x-api-key"]
-    expose_headers    = ["content-type"]
-    max_age          = 3600
+    allow_origins  = ["*"]
+    allow_methods  = ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+    allow_headers  = ["content-type", "authorization", "x-api-key"]
+    expose_headers = ["content-type"]
+    max_age        = 3600
   }
 
   tags = {
@@ -58,10 +58,10 @@ resource "aws_lambda_permission" "api_gateway_authorizer" {
 
 # Integração com Lambda de Login
 resource "aws_apigatewayv2_integration" "lambda_login" {
-  api_id             = aws_apigatewayv2_api.main.id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = aws_lambda_function.login.arn
-  integration_method = "POST"
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.login.arn
+  integration_method     = "POST"
   payload_format_version = "2.0"
 }
 
@@ -109,11 +109,11 @@ resource "aws_apigatewayv2_vpc_link" "eks" {
 
 # Integração com EKS via VPC Link/NLB
 resource "aws_apigatewayv2_integration" "eks" {
-  api_id             = aws_apigatewayv2_api.main.id
-  integration_type   = "HTTP_PROXY"
-  integration_uri    = data.terraform_remote_state.infra.outputs.nlb_listener_arn
-  integration_method = "ANY"
-  connection_type    = "VPC_LINK"
-  connection_id      = aws_apigatewayv2_vpc_link.eks.id
+  api_id                 = aws_apigatewayv2_api.main.id
+  integration_type       = "HTTP_PROXY"
+  integration_uri        = data.terraform_remote_state.infra.outputs.nlb_listener_arn
+  integration_method     = "ANY"
+  connection_type        = "VPC_LINK"
+  connection_id          = aws_apigatewayv2_vpc_link.eks.id
   payload_format_version = "1.0"
 }
