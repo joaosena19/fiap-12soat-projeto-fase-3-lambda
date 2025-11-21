@@ -44,3 +44,14 @@ output "vpc_link_id" {
   description = "ID do VPC Link"
   value       = aws_apigatewayv2_vpc_link.eks.id
 }
+
+# Outputs do CloudWatch Logs
+output "api_gateway_log_group_name" {
+  description = "Nome do CloudWatch Log Group do API Gateway"
+  value       = aws_cloudwatch_log_group.api_gateway.name
+}
+
+output "api_gateway_log_group_arn" {
+  description = "ARN do CloudWatch Log Group do API Gateway"
+  value       = aws_cloudwatch_log_group.api_gateway.arn
+}
