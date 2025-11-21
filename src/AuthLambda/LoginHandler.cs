@@ -9,12 +9,12 @@ using Shared.Exceptions;
 
 namespace AuthLambda;
 
-public class Function
+public class LoginHandler
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly IConfiguration _configuration;
 
-    public Function()
+    public LoginHandler()
     {
         // Construir configuração
         _configuration = new ConfigurationBuilder()
@@ -40,7 +40,7 @@ public class Function
 
     public TokenResponseDto FunctionHandler(TokenRequestDto request, ILambdaContext context)
     {
-        context.Logger.LogInformation($"Requisição de autenticação recebida para ClientId: {request?.ClientId}");
+        context.Logger.LogInformation($"Requisição de login recebida para ClientId: {request?.ClientId}");
 
         try
         {

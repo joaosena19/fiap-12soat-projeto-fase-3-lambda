@@ -77,12 +77,16 @@ jobs:
           TF_VAR_infra_terraform_state_bucket: ${{ secrets.TF_VAR_BUCKET_NAME }}
         run: terraform apply -auto-approve tfplan
 
-      - name: Exibir informações da Lambda
+      - name: Exibir informações das Lambdas
         working-directory: ./terraform
         run: |
-          echo "Lambda Function Name:"
-          terraform output lambda_function_name
-          echo "Lambda Function ARN:"
-          terraform output lambda_function_arn
+          echo "Login Lambda Function Name:"
+          terraform output login_lambda_name
+          echo "Login Lambda Function ARN:"
+          terraform output login_lambda_arn
+          echo "Authorizer Lambda Function Name:"
+          terraform output authorizer_lambda_name
+          echo "Authorizer Lambda Function ARN:"
+          terraform output authorizer_lambda_arn
           echo "API Gateway Endpoint:"
           terraform output api_gateway_endpoint

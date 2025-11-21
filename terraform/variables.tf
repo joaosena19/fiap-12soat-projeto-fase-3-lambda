@@ -10,12 +10,6 @@ variable "project_identifier" {
   default     = "fiap-12soat-projeto"
 }
 
-variable "lambda_function_name" {
-  description = "Nome da função Lambda"
-  type        = string
-  default     = "fiap-oficina-auth-lambda"
-}
-
 variable "lambda_runtime" {
   description = "Runtime da função Lambda"
   type        = string
