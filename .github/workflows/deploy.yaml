@@ -23,15 +23,15 @@ jobs:
 
       - name: Restaurar dependências
         working-directory: ./src/AuthLambda
-        run: dotnet restore
+        run: dotnet restore --runtime linux-x64
 
       - name: Build
         working-directory: ./src/AuthLambda
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build --configuration Release --runtime linux-x64 --no-restore
 
       - name: Publicar Lambda
         working-directory: ./src/AuthLambda
-        run: dotnet publish --configuration Release --no-build --output ./bin/Release/net8.0/publish
+        run: dotnet publish --configuration Release --no-build --runtime linux-x64 --self-contained false --output ./bin/Release/net8.0/publish
 
       - name: Configurar credenciais AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -62,6 +62,7 @@ jobs:
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
           TF_VAR_api_client_id: ${{ secrets.API_CLIENT_ID }}
           TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
+          TF_VAR_infra_terraform_state_bucket: ${{ secrets.TF_VAR_BUCKET_NAME }}
         run: terraform plan -out=tfplan
 
       - name: Aplicar Terraform
@@ -73,6 +74,7 @@ jobs:
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
           TF_VAR_api_client_id: ${{ secrets.API_CLIENT_ID }}
           TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
+          TF_VAR_infra_terraform_state_bucket: ${{ secrets.TF_VAR_BUCKET_NAME }}
         run: terraform apply -auto-approve tfplan
 
       - name: Exibir informações da Lambda
@@ -82,3 +84,5 @@ jobs:
           terraform output lambda_function_name
           echo "Lambda Function ARN:"
           terraform output lambda_function_arn
+          echo "API Gateway Endpoint:"
+          terraform output api_gateway_endpoint

@@ -78,6 +78,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Configurar .NET 8.0
+        if: steps.changes.outputs.terraform_changed == 'true'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restaurar dependências
+        if: steps.changes.outputs.terraform_changed == 'true'
+        working-directory: ./src/AuthLambda
+        run: dotnet restore --runtime linux-x64
+
+      - name: Build Lambda
+        if: steps.changes.outputs.terraform_changed == 'true'
+        working-directory: ./src/AuthLambda
+        run: dotnet build --configuration Release --runtime linux-x64 --no-restore
+
+      - name: Publicar Lambda para validação
+        if: steps.changes.outputs.terraform_changed == 'true'
+        working-directory: ./src/AuthLambda
+        run: dotnet publish --configuration Release --no-build --runtime linux-x64 --self-contained false --output ./bin/Release/net8.0/publish
+
       - name: Configurar Terraform
         if: steps.changes.outputs.terraform_changed == 'true'
         uses: hashicorp/setup-terraform@v3
@@ -106,6 +127,7 @@ jobs:
           TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
           TF_VAR_api_client_id: ${{ secrets.API_CLIENT_ID }}
           TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
+          TF_VAR_infra_terraform_state_bucket: ${{ secrets.TF_VAR_BUCKET_NAME }}
 
       - name: Resumo da validação
         if: steps.changes.outputs.terraform_changed == 'true'

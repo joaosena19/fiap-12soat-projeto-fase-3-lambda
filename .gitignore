@@ -76,3 +76,7 @@ Thumbs.db
 
 # Rider
 .idea/
+
+**/v18/*
+**/CopilotIndices/
+.vs/
