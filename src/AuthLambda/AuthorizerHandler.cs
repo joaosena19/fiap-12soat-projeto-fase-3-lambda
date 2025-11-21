@@ -31,8 +31,11 @@ public class AuthorizerHandler
         try
         {
             // Para HTTP API v2, o token vem em request.Headers["authorization"] ou request.Headers["Authorization"]
-            var authHeader = request.Headers?.GetValueOrDefault("authorization") 
-                          ?? request.Headers?.GetValueOrDefault("Authorization");
+            var authHeader = request.Headers?.ContainsKey("authorization") == true 
+                ? request.Headers["authorization"] 
+                : request.Headers?.ContainsKey("Authorization") == true 
+                    ? request.Headers["Authorization"] 
+                    : null;
             
             context.Logger.LogInformation($"Authorization header recebido: {(authHeader != null ? "[PRESENTE]" : "[AUSENTE]")}");
             
