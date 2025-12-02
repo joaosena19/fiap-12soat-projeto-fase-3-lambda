@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Shared.Exceptions;
 using Shared.Enums;
+using Infrastructure.Gateways.Interfaces;
 
 namespace Infrastructure.Authentication
 {
@@ -8,14 +9,16 @@ namespace Infrastructure.Authentication
     {
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
+        private readonly IUsuarioGateway _usuarioGateway;
 
-        public AuthenticationService(IConfiguration configuration, ITokenService tokenService)
+        public AuthenticationService(IConfiguration configuration, ITokenService tokenService, IUsuarioGateway usuarioGateway)
         {
             _configuration = configuration;
             _tokenService = tokenService;
+            _usuarioGateway = usuarioGateway;
         }
 
-        public TokenResponseDto ValidateCredentialsAndGenerateToken(TokenRequestDto request)
+        public async Task<TokenResponseDto> ValidateCredentialsAndGenerateTokenAsync(TokenRequestDto request)
         {
             if (string.IsNullOrEmpty(request.DocumentoIdentificadorUsuario) || string.IsNullOrEmpty(request.Senha))
                 throw new DomainException("Documento identificador e senha são obrigatórios.", ErrorType.InvalidInput);
@@ -24,7 +27,12 @@ namespace Infrastructure.Authentication
             if (!ValidarDocumentoIdentificador(request.DocumentoIdentificadorUsuario))
                 throw new DomainException("Documento identificador inválido.", ErrorType.Unauthorized);
 
-            // TODO: Implementar validação no banco de dados
+            // Segunda validação: verificar se usuário existe e está ativo
+            var usuario = await _usuarioGateway.ObterUsuarioAtivoAsync(request.DocumentoIdentificadorUsuario);
+            if (usuario == null)
+                throw new DomainException("Usuário não encontrado ou inativo.", ErrorType.Unauthorized);
+
+            // TODO: Implementar validação de senha
             // Por enquanto, apenas retorna token com o documento como identificador
             var token = _tokenService.GenerateToken(request.DocumentoIdentificadorUsuario);
             return new TokenResponseDto(token);
