@@ -57,7 +57,7 @@ public class LoginHandler
                 PropertyNameCaseInsensitive = true
             });
 
-            context.Logger.LogInformation($"ClientId recebido: {tokenRequest?.ClientId}");
+            context.Logger.LogInformation($"Documento recebido: {tokenRequest?.DocumentoIdentificadorUsuario}");
 
             if (tokenRequest == null)
             {

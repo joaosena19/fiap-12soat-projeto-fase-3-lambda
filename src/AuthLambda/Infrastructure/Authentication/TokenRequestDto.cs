@@ -1,4 +1,4 @@
 namespace Infrastructure.Authentication
 {
-    public record TokenRequestDto(string ClientId, string ClientSecret);
+    public record TokenRequestDto(string DocumentoIdentificadorUsuario, string Senha);
 }
