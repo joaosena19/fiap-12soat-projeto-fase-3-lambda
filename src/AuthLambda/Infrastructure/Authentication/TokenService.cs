@@ -15,7 +15,7 @@ namespace Infrastructure.Authentication
             _configuration = configuration;
         }
 
-        public string GenerateToken(string clientId)
+        public string GenerateToken(string userId, List<string> roles)
         {
             var key = _configuration["Jwt:Key"];
             var issuer = _configuration["Jwt:Issuer"];
@@ -27,13 +27,19 @@ namespace Infrastructure.Authentication
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, clientId),
+                new Claim(JwtRegisteredClaimNames.Sub, userId),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
-                new Claim("client_id", clientId)
+                new Claim("user_id", userId)
             };
+
+            // Adicionar roles como claims
+            foreach (var role in roles ?? new List<string>())
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: issuer,

@@ -1,10 +1,12 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Infrastructure.Authentication;
+using Infrastructure.Authentication.PasswordHashing;
 using Infrastructure.Gateways.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Shared.Enums;
 using Shared.Exceptions;
 using System.Text.Json;
@@ -40,6 +42,15 @@ public class LoginHandler
         services.AddSingleton(_configuration);
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IUsuarioGateway, UsuarioRepository>();
+        
+        // Configurar Argon2HashingOptions a partir do appsettings
+        services.Configure<Argon2HashingOptions>(_configuration.GetSection("Argon2HashingOptions"));
+        services.AddSingleton<PasswordHasher>(provider =>
+        {
+            var argon2Options = provider.GetRequiredService<IOptions<Argon2HashingOptions>>().Value;
+            return new PasswordHasher(argon2Options);
+        });
+        
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
     }
 

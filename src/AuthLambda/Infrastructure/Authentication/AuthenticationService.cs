@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Shared.Exceptions;
 using Shared.Enums;
 using Infrastructure.Gateways.Interfaces;
+using Infrastructure.Authentication.PasswordHashing;
 
 namespace Infrastructure.Authentication
 {
@@ -10,12 +11,14 @@ namespace Infrastructure.Authentication
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
         private readonly IUsuarioGateway _usuarioGateway;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public AuthenticationService(IConfiguration configuration, ITokenService tokenService, IUsuarioGateway usuarioGateway)
+        public AuthenticationService(IConfiguration configuration, ITokenService tokenService, IUsuarioGateway usuarioGateway, IPasswordHasher passwordHasher)
         {
             _configuration = configuration;
             _tokenService = tokenService;
             _usuarioGateway = usuarioGateway;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<TokenResponseDto> ValidateCredentialsAndGenerateTokenAsync(TokenRequestDto request)
@@ -32,9 +35,12 @@ namespace Infrastructure.Authentication
             if (usuario == null)
                 throw new DomainException("Usuário não encontrado ou inativo.", ErrorType.Unauthorized);
 
-            // TODO: Implementar validação de senha
-            // Por enquanto, apenas retorna token com o documento como identificador
-            var token = _tokenService.GenerateToken(request.DocumentoIdentificadorUsuario);
+            // Terceira validação: verificar se a senha está correta
+            if (!_passwordHasher.Verify(request.Senha, usuario.SenhaHash))
+                throw new DomainException("Senha incorreta.", ErrorType.Unauthorized);
+
+            // Gerar token com ID do usuário e roles
+            var token = _tokenService.GenerateToken(usuario.Id.ToString(), usuario.Roles);
             return new TokenResponseDto(token);
         }
 
