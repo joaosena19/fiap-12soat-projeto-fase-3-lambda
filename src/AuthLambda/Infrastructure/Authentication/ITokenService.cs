@@ -2,6 +2,6 @@ namespace Infrastructure.Authentication
 {
     public interface ITokenService
     {
-        string GenerateToken(string userId, List<string> roles);
+        string GenerateToken(string userId, Guid? clienteId, List<string> roles);
     }
 }

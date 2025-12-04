@@ -41,8 +41,10 @@ namespace Infrastructure.Repositories
                     u.id as Id,
                     u.documento_identificador as DocumentoIdentificador,
                     u.senha_hash as SenhaHash,
-                    u.status as Status
+                    u.status as Status,
+                    c.id as ClienteId
                 FROM usuarios u
+                LEFT JOIN clientes c ON u.documento_identificador = c.documento_identificador
                 WHERE u.documento_identificador = @documentoIdentificador
                 AND u.status = 'ativo'";
 

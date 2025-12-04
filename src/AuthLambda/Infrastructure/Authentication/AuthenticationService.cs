@@ -39,8 +39,8 @@ namespace Infrastructure.Authentication
             if (!_passwordHasher.Verify(request.Senha, usuario.SenhaHash))
                 throw new DomainException("Senha incorreta.", ErrorType.Unauthorized);
 
-            // Gerar token com ID do usuário e roles
-            var token = _tokenService.GenerateToken(usuario.Id.ToString(), usuario.Roles);
+            // Gerar token com ID do usuário, ClienteId (se existir) e roles
+            var token = _tokenService.GenerateToken(usuario.Id.ToString(), usuario.ClienteId, usuario.Roles);
             return new TokenResponseDto(token);
         }
 
