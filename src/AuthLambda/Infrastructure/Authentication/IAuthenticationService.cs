@@ -2,6 +2,6 @@ namespace Infrastructure.Authentication
 {
     public interface IAuthenticationService
     {
-        TokenResponseDto ValidateCredentialsAndGenerateToken(TokenRequestDto request);
+        Task<TokenResponseDto> ValidateCredentialsAndGenerateTokenAsync(TokenRequestDto request);
     }
 }
