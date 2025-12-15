@@ -46,21 +46,23 @@ variable "jwt_audience" {
   default     = "AuthorizedServices"
 }
 
-variable "api_client_id" {
-  description = "Client ID para autenticação"
-  type        = string
-  sensitive   = true
-}
-
-variable "api_client_secret" {
-  description = "Client Secret para autenticação"
-  type        = string
-  sensitive   = true
-}
-
 # Variáveis para remote state da infraestrutura
 variable "infra_terraform_state_bucket" {
   description = "Nome do bucket S3 onde está o state da infraestrutura"
   type        = string
   default     = "fiap-12soat-fase3-joao-dainese"
+}
+
+# Variáveis para remote state do banco
+variable "banco_terraform_state_bucket" {
+  description = "Nome do bucket S3 onde está o state do banco"
+  type        = string
+  default     = "fiap-12soat-fase3-joao-dainese"
+}
+
+# Senha do banco (passada via workflow)
+variable "db_password" {
+  description = "Senha do banco de dados"
+  type        = string
+  sensitive   = true
 }

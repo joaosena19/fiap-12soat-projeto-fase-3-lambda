@@ -1,8 +1,12 @@
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Infrastructure.Authentication;
+using Infrastructure.Authentication.PasswordHashing;
+using Infrastructure.Gateways.Interfaces;
+using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Shared.Enums;
 using Shared.Exceptions;
 using System.Text.Json;
@@ -37,10 +41,20 @@ public class LoginHandler
     {
         services.AddSingleton(_configuration);
         services.AddSingleton<ITokenService, TokenService>();
+        services.AddSingleton<IUsuarioGateway, UsuarioRepository>();
+        
+        // Configurar Argon2HashingOptions a partir do appsettings
+        services.Configure<Argon2HashingOptions>(_configuration.GetSection("Argon2HashingOptions"));
+        services.AddSingleton<PasswordHasher>(provider =>
+        {
+            var argon2Options = provider.GetRequiredService<IOptions<Argon2HashingOptions>>().Value;
+            return new PasswordHasher(argon2Options);
+        });
+        
         services.AddSingleton<IAuthenticationService, AuthenticationService>();
     }
 
-    public APIGatewayProxyResponse FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
+    public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
         context.Logger.LogInformation($"Requisição de login recebida. Body: {request?.Body}");
 
@@ -57,7 +71,7 @@ public class LoginHandler
                 PropertyNameCaseInsensitive = true
             });
 
-            context.Logger.LogInformation($"ClientId recebido: {tokenRequest?.ClientId}");
+            context.Logger.LogInformation($"Documento recebido: {tokenRequest?.DocumentoIdentificadorUsuario}");
 
             if (tokenRequest == null)
             {
@@ -65,7 +79,7 @@ public class LoginHandler
             }
 
             // Validar credenciais e gerar token
-            var tokenResponse = _authenticationService.ValidateCredentialsAndGenerateToken(tokenRequest);
+            var tokenResponse = await _authenticationService.ValidateCredentialsAndGenerateTokenAsync(tokenRequest);
 
             context.Logger.LogInformation("Token gerado com sucesso");
             
