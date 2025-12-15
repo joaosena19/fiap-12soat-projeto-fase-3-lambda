@@ -1,13 +1,3 @@
-# Data source para obter informações da infraestrutura
-data "terraform_remote_state" "infra" {
-  backend = "s3"
-  config = {
-    bucket = var.infra_terraform_state_bucket
-    key    = "infra/terraform.tfstate"
-    region = var.aws_region
-  }
-}
-
 # Data source para obter informações do banco
 data "terraform_remote_state" "banco" {
   backend = "s3"
