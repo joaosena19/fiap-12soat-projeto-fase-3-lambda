@@ -66,3 +66,15 @@ variable "db_password" {
   type        = string
   sensitive   = true
 }
+
+variable "new_relic_account_id" {
+  description = "ID da conta do New Relic"
+  type        = string
+  sensitive   = true
+}
+
+variable "new_relic_license_key" {
+  description = "Chave de licença do New Relic (Ingest License)"
+  type        = string
+  sensitive   = true
+}

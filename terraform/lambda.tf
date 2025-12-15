@@ -61,6 +61,11 @@ resource "aws_lambda_function" "login" {
   timeout          = var.lambda_timeout
   memory_size      = var.lambda_memory_size
 
+  # New Relic Layer
+  layers = [
+    "arn:aws:lambda:us-east-1:451483290750:layer:NewRelicLambdaExtension:37"
+  ]
+
   # Configuração VPC para acessar RDS
   vpc_config {
     subnet_ids         = data.terraform_remote_state.infra.outputs.subnet_publica_ids
@@ -77,6 +82,12 @@ resource "aws_lambda_function" "login" {
       DatabaseConnection__DatabaseName = data.terraform_remote_state.banco.outputs.postgres_database_name
       DatabaseConnection__User     = data.terraform_remote_state.banco.outputs.postgres_master_username
       DatabaseConnection__Password = var.db_password
+      
+      # New Relic Configuration
+      NEW_RELIC_ACCOUNT_ID                   = var.new_relic_account_id
+      NEW_RELIC_LICENSE_KEY                  = var.new_relic_license_key
+      NEW_RELIC_EXTENSION_SEND_FUNCTION_LOGS = "true"
+      NEW_RELIC_APP_NAME                     = "${var.project_identifier}-login-lambda"
     }
   }
 
@@ -98,11 +109,22 @@ resource "aws_lambda_function" "authorizer" {
   timeout          = var.lambda_timeout
   memory_size      = var.lambda_memory_size
 
+  # New Relic Layer
+  layers = [
+    "arn:aws:lambda:us-east-1:451483290750:layer:NewRelicLambdaExtension:37"
+  ]
+
   environment {
     variables = {
       Jwt__Key      = var.jwt_key
       Jwt__Issuer   = var.jwt_issuer
       Jwt__Audience = var.jwt_audience
+      
+      # New Relic Configuration
+      NEW_RELIC_ACCOUNT_ID                   = var.new_relic_account_id
+      NEW_RELIC_LICENSE_KEY                  = var.new_relic_license_key
+      NEW_RELIC_EXTENSION_SEND_FUNCTION_LOGS = "true"
+      NEW_RELIC_APP_NAME                     = "${var.project_identifier}-authorizer-lambda"
     }
   }
 
