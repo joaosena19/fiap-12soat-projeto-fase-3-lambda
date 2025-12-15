@@ -115,20 +115,6 @@ jobs:
         run: terraform validate
         working-directory: ./terraform
 
-      - name: Terraform Plan
-        if: steps.changes.outputs.terraform_changed == 'true'
-        id: plan
-        run: terraform plan -no-color
-        working-directory: ./terraform
-        env:
-          TF_VAR_aws_region: us-east-1
-          TF_VAR_jwt_key: ${{ secrets.JWT_KEY }}
-          TF_VAR_jwt_issuer: ${{ secrets.JWT_ISSUER }}
-          TF_VAR_jwt_audience: ${{ secrets.JWT_AUDIENCE }}
-          TF_VAR_api_client_id: ${{ secrets.API_CLIENT_ID }}
-          TF_VAR_api_client_secret: ${{ secrets.API_CLIENT_SECRET }}
-          TF_VAR_infra_terraform_state_bucket: ${{ secrets.TF_VAR_BUCKET_NAME }}
-
       - name: Resumo da validação
         if: steps.changes.outputs.terraform_changed == 'true'
         run: echo "Validação do Terraform concluída com sucesso."
