@@ -45,7 +45,7 @@ public class LoginHandler
         
         // Configurar Argon2HashingOptions a partir do appsettings
         services.Configure<Argon2HashingOptions>(_configuration.GetSection("Argon2HashingOptions"));
-        services.AddSingleton<PasswordHasher>(provider =>
+        services.AddSingleton<IPasswordHasher>(provider =>
         {
             var argon2Options = provider.GetRequiredService<IOptions<Argon2HashingOptions>>().Value;
             return new PasswordHasher(argon2Options);
